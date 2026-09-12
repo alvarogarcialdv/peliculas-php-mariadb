@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS peliculas (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    director VARCHAR(120) NOT NULL,
+    anio SMALLINT UNSIGNED NOT NULL,
+    genero VARCHAR(80) NOT NULL,
+    sinopsis TEXT NOT NULL,
+    CONSTRAINT anio_minimo CHECK (anio >= 1888)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

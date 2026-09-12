@@ -1,0 +1,30 @@
+:root { font-family: system-ui, sans-serif; color: #202936; background: #f4f6f9; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { background: #173453; padding: 1.2rem; }
+header a { color: white; font-weight: bold; }
+main, nav { max-width: 960px; margin: auto; }
+main { padding: 1.5rem; }
+a { color: #174f88; }
+h1 { overflow-wrap: anywhere; }
+label, dt { display: block; font-weight: 600; margin-bottom: .4rem; }
+input, textarea, button, .boton { font: inherit; padding: .65rem .85rem; border-radius: .3rem; }
+input, textarea { width: 100%; border: 1px solid #707c89; background: white; }
+button, .boton { display: inline-block; background: #174f88; color: white; border: 0; cursor: pointer; }
+.boton { text-decoration: none; }
+button:hover, .boton:hover { background: #103759; }
+:focus-visible { outline: 3px solid #b66a00; outline-offset: 3px; }
+.formulario { max-width: 640px; }
+.formulario > div { margin-bottom: 1.2rem; }
+.buscador { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.buscador input { flex: 1 1 200px; }
+.peliculas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; }
+article { background: white; border: 1px solid #d4dbe3; padding: 1.2rem; border-radius: .4rem; overflow-wrap: anywhere; }
+article a + a { margin-left: 1rem; }
+.aviso { background: #e0f1e5; padding: 1rem; }
+.error { color: #a21818; }
+.peligro { background: #a21818; }
+dd { margin: 0 0 1rem; overflow-wrap: anywhere; }
+.sinopsis { white-space: pre-wrap; }
+details { margin-top: 2rem; padding: 1rem; border: 1px solid #a21818; }
+summary { cursor: pointer; }
