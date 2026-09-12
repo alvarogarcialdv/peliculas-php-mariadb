@@ -18,7 +18,7 @@ CREATE USER 'peliculas'@'127.0.0.1' IDENTIFIED BY 'SUSTITUIR_POR_UNA_CLAVE_LOCAL
 GRANT SELECT, INSERT, UPDATE, DELETE ON peliculas.* TO 'peliculas'@'127.0.0.1';
 ```
 
-Importa el esquema con una cuenta que pueda crear tablas y carga los ejemplos una sola vez:
+Importa el esquema con una cuenta que pueda crear tablas y carga una sola vez los doce clásicos de aventuras, fantasía y ciencia ficción:
 
 ```bash
 mariadb -u root -p peliculas < base-datos/esquema.sql
