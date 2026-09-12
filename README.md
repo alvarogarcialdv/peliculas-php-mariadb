@@ -2,6 +2,8 @@
 
 Aplicación educativa para practicar el despliegue tradicional de una aplicación web. Permite listar, buscar, consultar, crear, editar y eliminar películas. Está desarrollada con PHP, PDO, MariaDB y plantillas HTML, sin framework ni Composer.
 
+Ejecuta todos los comandos de este documento desde la raíz de la aplicación.
+
 ## Requisitos
 
 - PHP 8.4 o posterior con las extensiones `pdo_mysql` y `mbstring`, y soporte de sesiones.
@@ -25,11 +27,13 @@ mariadb -u root -p peliculas < base-datos/esquema.sql
 mariadb -h 127.0.0.1 -u peliculas -p peliculas < base-datos/datos-iniciales.sql
 ```
 
+La carga inicial no elimina datos existentes. No la repitas sobre una base poblada, porque duplicaría las películas. Algunas instalaciones administran MariaDB mediante `sudo mariadb` o el panel del alojamiento; en ese caso, importa desde allí los dos archivos SQL en el mismo orden.
+
 ## Configuración
 
-`.env.example` enumera las variables necesarias, pero PHP no carga archivos `.env` automáticamente. El código consume `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`. `APP_PORT` se usa en el comando de desarrollo. `APP_ENV` queda disponible para el entorno, pero no altera el comportamiento actual.
+`.env.example` enumera las variables necesarias, pero PHP no carga archivos `.env` automáticamente. El código consume `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`, todas obligatorias. No existen credenciales implícitas ni se admite `DATABASE_URL`.
 
-En Bash:
+`APP_PORT` se utiliza en el comando de desarrollo. `APP_ENV` queda disponible para el entorno, pero no altera el comportamiento actual. En Bash:
 
 ```bash
 export APP_ENV=desarrollo
@@ -42,21 +46,44 @@ read -rsp 'Contraseña de MariaDB: ' DB_PASSWORD
 export DB_PASSWORD
 ```
 
-No guardes contraseñas reales en el repositorio.
+No guardes contraseñas reales ni archivos `.env` en el repositorio.
 
 ## Ejecución local
 
-Desde la raíz del proyecto, inicia el servidor de desarrollo:
+Inicia el servidor de desarrollo incorporado en PHP:
 
 ```bash
 php -S "127.0.0.1:${APP_PORT}" -t publico servidor.php
 ```
 
-Abre `http://127.0.0.1:8000/peliculas`. `GET /salud` comprueba la conexión con MariaDB y devuelve `200` si está disponible o `503` si falla.
+Abre `http://127.0.0.1:8000/peliculas`. El servidor incorporado es solo para desarrollo local y la aplicación se sirve en la raíz del dominio.
 
-En Apache, configura `publico/` como raíz web, habilita `mod_rewrite` y permite las reglas de `publico/.htaccess`. En hosting compartido, mantén `src/`, `configuracion/` y `vistas/` fuera de la raíz pública siempre que el proveedor lo permita. La aplicación está preparada para publicarse en la raíz del dominio.
+## Apache y hosting compartido
 
-## Pruebas
+En Apache, configura `publico/` como raíz web, habilita `mod_rewrite` y permite las reglas de `publico/.htaccess` mediante `AllowOverride FileInfo Indexes`. Proporciona las variables `DB_*` al proceso PHP y usa HTTPS en producción.
+
+Si un hosting obliga a usar `public_html/`, coloca allí el contenido de `publico/` y sitúa `src/`, `configuracion/` y `vistas/` en el directorio padre para conservar las rutas relativas de `index.php`. No publiques los archivos SQL, las pruebas ni la configuración privada. El alojamiento debe admitir reescritura de rutas, variables de entorno y sesiones PHP.
+
+## Organización
+
+- `publico/index.php`: punto de entrada web y comprobación de salud.
+- `publico/css/`: estilos de la interfaz.
+- `src/rutas.php`: rutas y operaciones de la aplicación.
+- `src/peliculas.php` y `src/conexion.php`: consultas preparadas y conexión PDO.
+- `src/validacion.php`: validación y normalización de campos.
+- `vistas/`: páginas HTML y formularios sin JavaScript.
+- `base-datos/`: esquema y datos iniciales.
+- `pruebas/`: pruebas específicas sin dependencias externas.
+
+## Sesiones, seguridad y salud
+
+Los formularios usan sesiones PHP para los tokens CSRF y los mensajes de confirmación. El servidor debe conservar la sesión entre peticiones. Con varias instancias se necesitaría almacenamiento de sesiones compartido o afinidad de sesión; esta entrega no incorpora esas soluciones.
+
+Las consultas usan parámetros preparados y las salidas HTML se escapan. Las operaciones correctas redirigen con `303`; los datos inválidos devuelven `422`, un CSRF inválido devuelve `403` y los recursos inexistentes, `404`. Los errores internos devuelven `500` con un mensaje genérico y registran el detalle en el servidor.
+
+`GET /salud` no inicia sesión. Ejecuta una consulta mínima y devuelve texto UTF-8 con `200` cuando conecta con MariaDB o `503` cuando falla, sin mostrar detalles técnicos.
+
+## Pruebas específicas de PHP
 
 Comprueba la sintaxis y la validación sin instalar dependencias:
 
@@ -71,10 +98,18 @@ La prueba de persistencia necesita una base exclusiva de pruebas con `base-datos
 php pruebas/base-datos.php
 ```
 
-La prueba crea datos dentro de una transacción y ejecuta `rollback`; el contador de identificadores puede avanzar. No la ejecutes contra datos reales.
+La prueba crea registros dentro de una transacción y ejecuta `rollback`; el contador de identificadores puede avanzar. No la ejecutes contra datos reales.
 
-## Sesiones y seguridad
+Con el servidor iniciado, comprueba también que:
 
-Los formularios usan sesiones PHP para los tokens CSRF y los mensajes de confirmación. El servidor debe conservar la sesión entre peticiones. Con varias instancias, se necesitaría almacenamiento de sesiones compartido o afinidad de sesión; esta entrega no incorpora esas soluciones. Las consultas usan parámetros preparados y las salidas HTML se escapan.
+1. El listado muestra los datos iniciales y la búsqueda no distingue mayúsculas.
+2. Una búsqueda inexistente muestra el estado vacío.
+3. Crear y editar conservan los valores y redirigen al detalle.
+4. Los campos vacíos, demasiado largos o con un año fuera de rango se rechazan.
+5. Eliminar requiere confirmación y devuelve al listado.
+6. Un identificador o una ruta inexistente devuelve `404`.
+7. `/salud` devuelve texto UTF-8, no crea una cookie de sesión y refleja la disponibilidad de MariaDB.
+
+No hay fase de compilación ni herramientas de lint adicionales al comprobador sintáctico de PHP.
 
 No se incluye una licencia en esta entrega.
