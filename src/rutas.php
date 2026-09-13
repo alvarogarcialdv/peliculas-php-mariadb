@@ -1,12 +1,28 @@
 <?php
 declare(strict_types=1);
 
-function atenderPeticion(): void
+function atenderPeticion(mixed $ruta): void
 {
-    $ruta = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $metodo = $_SERVER['REQUEST_METHOD'];
+    if (!is_string($ruta)) {
+        mostrar('error', ['titulo' => 'Recurso no encontrado', 'mensaje' => 'La página solicitada no existe.'], 404);
+        return;
+    }
     if ($metodo === 'GET' && $ruta === '/') {
         redirigir('/peliculas');
+        return;
+    }
+    $partes = [];
+    $coincide = preg_match('#^/peliculas/([1-9][0-9]{0,9})(/editar|/eliminar)?$#D', $ruta, $partes);
+    $id = $coincide ? $partes[1] : null;
+    $sufijo = $partes[2] ?? '';
+    $crear = $metodo === 'POST' && $ruta === '/peliculas';
+    $listar = $metodo === 'GET' && $ruta === '/peliculas';
+    $nueva = $metodo === 'GET' && $ruta === '/peliculas/nueva';
+    $rutaValida = $coincide && (($metodo === 'GET' && in_array($sufijo, ['', '/editar'], true))
+        || ($metodo === 'POST' && in_array($sufijo, ['', '/eliminar'], true)));
+    if (!$crear && !$listar && !$nueva && !$rutaValida) {
+        mostrar('error', ['titulo' => 'Recurso no encontrado', 'mensaje' => 'La página solicitada no existe.'], 404);
         return;
     }
     if ($metodo === 'POST') {
@@ -16,11 +32,11 @@ function atenderPeticion(): void
             return;
         }
     }
-    if ($metodo === 'GET' && $ruta === '/peliculas/nueva') {
+    if ($nueva) {
         mostrar('formulario', ['titulo' => 'Nueva película', 'pelicula' => [], 'errores' => [], 'accion' => '/peliculas']);
         return;
     }
-    if ($metodo === 'GET' && $ruta === '/peliculas') {
+    if ($listar) {
         $busqueda = $_GET['busqueda'] ?? '';
         if (!is_string($busqueda) || !mb_check_encoding($busqueda, 'UTF-8')) {
             mostrar('error', ['titulo' => 'Búsqueda inválida', 'mensaje' => 'Introduce un texto de búsqueda válido.'], 422);
@@ -28,16 +44,6 @@ function atenderPeticion(): void
         }
         $busqueda = trim($busqueda);
         mostrar('listado', ['titulo' => 'Películas', 'peliculas' => listarPeliculas(conexion(), $busqueda), 'busqueda' => $busqueda]);
-        return;
-    }
-    $coincide = preg_match('#^/peliculas/([1-9][0-9]{0,9})(/editar|/eliminar)?$#D', (string) $ruta, $partes);
-    $id = $coincide ? $partes[1] : null;
-    $sufijo = $partes[2] ?? '';
-    $crear = $metodo === 'POST' && $ruta === '/peliculas';
-    $rutaValida = $coincide && (($metodo === 'GET' && in_array($sufijo, ['', '/editar'], true))
-        || ($metodo === 'POST' && in_array($sufijo, ['', '/eliminar'], true)));
-    if (!$crear && !$rutaValida) {
-        mostrar('error', ['titulo' => 'Recurso no encontrado', 'mensaje' => 'La página solicitada no existe.'], 404);
         return;
     }
     $bd = conexion();

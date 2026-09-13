@@ -6,8 +6,11 @@ header('X-Content-Type-Options: nosniff');
 
 require __DIR__ . '/../src/conexion.php';
 
-$ruta = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && $ruta === '/salud') {
+$ruta = $_GET['ruta'] ?? '/peliculas';
+if (isset($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO'] !== '') {
+    $ruta = null;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && is_string($ruta) && $ruta === '/salud') {
     header('Content-Type: text/plain; charset=UTF-8');
     try {
         conexion()->query('SELECT 1');
@@ -33,7 +36,7 @@ require __DIR__ . '/../src/presentacion.php';
 require __DIR__ . '/../src/rutas.php';
 
 try {
-    atenderPeticion();
+    atenderPeticion($ruta);
 } catch (Throwable $error) {
     error_log('Error en la aplicación de películas: ' . $error->getMessage());
     mostrar('error', ['titulo' => 'Servicio no disponible', 'mensaje' => 'No se ha podido completar la operación. Inténtalo de nuevo más tarde.'], 500);

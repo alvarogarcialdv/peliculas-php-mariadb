@@ -36,4 +36,11 @@ foreach (['1888', (string) ((int) date('Y') + 1)] as $anio) {
     comprobar($errores === [], 'Debe aceptar los extremos del intervalo de años.');
 }
 comprobar(escapar('<script>"&') === '&lt;script&gt;&quot;&amp;', 'Debe escapar HTML.');
+comprobar(urlEntrada() === '/index.php', 'La entrada pública debe estar centralizada.');
+$url = urlRuta('/peliculas/7', ['busqueda' => 'A & B']);
+comprobar($url === '/index.php?ruta=%2Fpeliculas%2F7&busqueda=A%20%26%20B', 'Debe codificar rutas y parámetros.');
+comprobar(
+    escapar($url) === '/index.php?ruta=%2Fpeliculas%2F7&amp;busqueda=A%20%26%20B',
+    'Debe escapar las URL al insertarlas en HTML.'
+);
 echo "Validación y escape: correctos.\n";

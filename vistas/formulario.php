@@ -1,4 +1,4 @@
-<form method="post" action="<?= escapar($accion) ?>" class="formulario">
+<form method="post" action="<?= escapar(urlRuta($accion)) ?>" class="formulario">
     <?php campoCsrf(); ?>
     <?php foreach (['titulo' => 'Título', 'director' => 'Director', 'anio' => 'Año', 'genero' => 'Género', 'sinopsis' => 'Sinopsis (opcional)'] as $campo => $etiqueta): ?>
         <div>
@@ -16,5 +16,5 @@
         </div>
     <?php endforeach; ?>
     <button>Guardar película</button>
-    <a href="/peliculas">Cancelar</a>
+    <a href="<?= escapar(urlRuta('/peliculas')) ?>">Cancelar</a>
 </form>

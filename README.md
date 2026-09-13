@@ -53,16 +53,16 @@ No guardes contraseñas reales ni archivos `.env` en el repositorio.
 Inicia el servidor de desarrollo incorporado en PHP:
 
 ```bash
-php -S "127.0.0.1:${APP_PORT}" -t publico servidor.php
+php -S "127.0.0.1:${APP_PORT}" -t publico
 ```
 
-Abre `http://127.0.0.1:8000/peliculas`. El servidor incorporado es solo para desarrollo local y la aplicación se sirve en la raíz del dominio.
+Abre `http://127.0.0.1:8000/index.php?ruta=/peliculas`. La aplicación recibe la ruta lógica mediante el parámetro `ruta`; si se omite, `index.php` muestra el listado. El servidor incorporado es solo para desarrollo local y la aplicación se sirve en la raíz del dominio.
 
 ## Apache y hosting compartido
 
-En Apache, configura `publico/` como raíz web, habilita `mod_rewrite` y permite las reglas de `publico/.htaccess` mediante `AllowOverride FileInfo Indexes`. Proporciona las variables `DB_*` al proceso PHP y usa HTTPS en producción.
+En Apache, configura `publico/` como raíz web y asegúrate de que el servidor ejecuta `index.php` con PHP. No se necesita reescritura de URLs: se puede abrir `index.php` explícitamente y la ruta viaja en la cadena de consulta. Proporciona las variables `DB_*` al proceso PHP y usa HTTPS en producción.
 
-Si un hosting obliga a usar `public_html/`, coloca allí el contenido de `publico/` y sitúa `src/`, `configuracion/` y `vistas/` en el directorio padre para conservar las rutas relativas de `index.php`. No publiques los archivos SQL, las pruebas ni la configuración privada. El alojamiento debe admitir reescritura de rutas, variables de entorno y sesiones PHP.
+Si un hosting obliga a usar `public_html/`, coloca allí el contenido de `publico/` y sitúa `src/`, `configuracion/` y `vistas/` en el directorio padre para conservar las rutas relativas de `index.php`. No publiques los archivos SQL, las pruebas ni la configuración privada. El alojamiento debe admitir variables de entorno y sesiones PHP.
 
 ## Organización
 
@@ -81,7 +81,7 @@ Los formularios usan sesiones PHP para los tokens CSRF y los mensajes de confirm
 
 Las consultas usan parámetros preparados y las salidas HTML se escapan. Las operaciones correctas redirigen con `303`; los datos inválidos devuelven `422`, un CSRF inválido devuelve `403` y los recursos inexistentes, `404`. Los errores internos devuelven `500` con un mensaje genérico y registran el detalle en el servidor.
 
-`GET /salud` no inicia sesión. Ejecuta una consulta mínima y devuelve texto UTF-8 con `200` cuando conecta con MariaDB o `503` cuando falla, sin mostrar detalles técnicos.
+`GET /index.php?ruta=/salud` no inicia sesión. Ejecuta una consulta mínima y devuelve texto UTF-8 con `200` cuando conecta con MariaDB o `503` cuando falla, sin mostrar detalles técnicos.
 
 ## Pruebas específicas de PHP
 
@@ -107,8 +107,8 @@ Con el servidor iniciado, comprueba también que:
 3. Crear y editar conservan los valores y redirigen al detalle.
 4. Los campos vacíos, demasiado largos o con un año fuera de rango se rechazan.
 5. Eliminar requiere confirmación y devuelve al listado.
-6. Un identificador o una ruta inexistente devuelve `404`.
-7. `/salud` devuelve texto UTF-8, no crea una cookie de sesión y refleja la disponibilidad de MariaDB.
+6. Un identificador o una ruta lógica inexistente devuelve `404`.
+7. `/index.php?ruta=/salud` devuelve texto UTF-8, no crea una cookie de sesión y refleja la disponibilidad de MariaDB.
 
 No hay fase de compilación ni herramientas de lint adicionales al comprobador sintáctico de PHP.
 

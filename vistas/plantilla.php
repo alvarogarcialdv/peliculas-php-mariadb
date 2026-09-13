@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/estilos.css">
 </head>
 <body>
-    <header><nav><a href="/peliculas">Aplicación de películas</a></nav></header>
+    <header><nav><a href="<?= escapar(urlRuta('/peliculas')) ?>">Aplicación de películas</a></nav></header>
     <main>
         <?php if (isset($_SESSION['mensaje'])): ?>
             <p class="aviso" role="status"><?= escapar($_SESSION['mensaje']) ?></p>
